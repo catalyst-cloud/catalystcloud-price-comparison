@@ -15,4 +15,4 @@ In essence, **If every cloud provider offered the same size compute instances, h
 
 Here's the result, plotted using the lovely [Chart.js](http://www.chartjs.org/), and hosted on Catalyst Cloud's object storage.
 
-<iframe src="https://object-storage.nz-por-1.catalystcloud.io/v1/AUTH_8ccc3286887e49cb9a40f023eba693b4/catalyst-cloud-price-comp/" width="" height=""></iframe>
+<iframe src="https://object-storage.nz-por-1.catalystcloud.io/v1/AUTH_8ccc3286887e49cb9a40f023eba693b4/catalyst-cloud-price-comp/" width="1000px" height="200px"></iframe>
