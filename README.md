@@ -24,4 +24,4 @@ You can see my working on an IPython notebook [here](https://nbviewer.jupyter.or
 ## The result
 Here's the result, plotted using [Chart.js](http://www.chartjs.org/), and hosted on [Catalyst Cloud's object storage](http://docs.catalystcloud.io/object-storage.html#static-websites-hosted-in-object-storage).
 
-<iframe src="https://object-storage.nz-por-1.catalystcloud.io/v1/AUTH_8ccc3286887e49cb9a40f023eba693b4/catalyst-cloud-price-comp/" width="965px" height="488px"></iframe>
+<iframe src="https://object-storage.nz-por-1.catalystcloud.io/v1/AUTH_8ccc3286887e49cb9a40f023eba693b4/catalyst-cloud-price-comp/" width="965px" height="485px"></iframe>
