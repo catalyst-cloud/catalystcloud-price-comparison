@@ -1,1 +1,4 @@
 theme: jekyll-theme-cayman
+
+site:
+  title: A Cloud Price Comparison
