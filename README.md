@@ -1,4 +1,4 @@
-# A Cloud Price Comparison
+# Comparison of cloud compute price per hour
 How do cloud providers stack up?
 
 Making apples to apples comparisons between different cloud providers is very difficult, because each one offers instances with varying vCPUs, RAM, SSD space and HDD space. To further obfuscate matters, slightly different billing systems, promises of arcane discounting, only providing pricing in USD, and inconsistent naming conventions are sprinkled throughout.

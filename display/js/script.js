@@ -10,8 +10,8 @@ var chart = new Chart(ctx, {
         datasets: [
           {
               label: "Catalyst",
-              backgroundColor: 'rgb(214, 39, 40)',
-              borderColor: 'rgb(214, 39, 40)',
+              backgroundColor: 'rgb(45, 160, 45)',
+              borderColor: 'rgb(45, 160, 45)',
               pointRadius: 0,
               borderWidth: 5,
               tension: 0,
@@ -20,8 +20,8 @@ var chart = new Chart(ctx, {
           },
           {
               label: "Google",
-              backgroundColor: 'rgb(31, 119, 180)',
-              borderColor: 'rgb(31, 119, 180)',
+              backgroundColor: 'rgb(214, 39, 40)',
+              borderColor: 'rgb(214, 39, 40)',
               pointRadius: 0,
               borderWidth: 2,
               tension: 0,
@@ -40,8 +40,8 @@ var chart = new Chart(ctx, {
           },
           {
               label: "Azure",
-              backgroundColor: 'rgb(45, 160, 45)',
-              borderColor: 'rgb(45, 160, 45)',
+              backgroundColor: 'rgb(31, 119, 180)',
+              borderColor: 'rgb(31, 119, 180)',
               pointRadius: 0,
               borderWidth: 2,
               tension: 0,
@@ -56,7 +56,7 @@ var chart = new Chart(ctx, {
       responsive: true,
       title:{
           display:true,
-          text:'Comparison of Cloud providers\' price per hour against instance power',
+          text:'Comparison of cloud compute price per hour',
           fontSize: 22
       },
       legend: {
