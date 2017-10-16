@@ -3,7 +3,7 @@ How do cloud providers stack up?
 
 Making apples to apples comparisons between different cloud providers is very difficult, because each one offers instances with varying vCPUs, RAM, SSD space and HDD space. To further obfuscate matters, slightly different billing systems, promises of arcane discounting, only providing pricing in USD, and inconsistent naming conventions are sprinkled throughout.
 
-As an attempt to provide a clearer price comparison, I've used the [random forest algorithm](https://en.wikipedia.org/wiki/Random_forest) to "[normalise](https://en.wikipedia.org/wiki/Normalization_(statistics))" the pricing of compute instances across different cloud providers.
+As an attempt to provide a clearer price comparison, I've used the [multiple linear regression](https://en.wikipedia.org/wiki/Linear_regression) to "[normalise](https://en.wikipedia.org/wiki/Normalization_(statistics))" the pricing of compute instances across different cloud providers.
 
 In essence, **If every cloud provider offered the same size compute instances, how expensive would they be?**
 
@@ -17,7 +17,7 @@ I'll be taking the price tables of:
 and converting them into the instance sizes offered by [Catalyst Cloud](https://www.catalyst.net.nz/catalyst-cloud/prices). You can find the datasets and their sources [here](https://github.com/catalyst-cloud/catalystcloud-price-comparison/raw/master/dataset/Cloud%20price%20comparison.ods).
 
 ## The Python
-I've used the [scikit-learn](http://scikit-learn.org/stable/) library's [random forest regressor](http://scikit-learn.org/stable/modules/ensemble.html#forest) to achieve the desired normalisation, and [Pandas](http://pandas.pydata.org/) for managing the data.
+I've used the [scikit-learn](http://scikit-learn.org/stable/) library's [multiple linear regression](http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html) to achieve the desired normalisation, and [Pandas](http://pandas.pydata.org/) for managing the data.
 
 You can see my working on an IPython notebook [here](https://nbviewer.jupyter.org/github/catalyst-cloud/cloud-price-comparison/blob/master/cloud_price_comparison.ipynb).
 
