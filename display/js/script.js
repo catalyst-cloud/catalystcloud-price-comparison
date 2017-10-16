@@ -83,7 +83,7 @@ var chart = new Chart(ctx, {
               },
               scaleLabel: {
                   display: true,
-                  labelString: 'GB RAM + vCPUs',
+                  labelString: 'Instance flavor',
                   fontSize: 18
               }
           }],
