@@ -1,6 +1,6 @@
 # Comparison of compute price per hour
 
-Making apples to apples comparisons between different cloud providers is very difficult, because each one offers instances with varying vCPUs, RAM, SSD space and HDD space. To further obfuscate matters, slightly different billing systems, promises of arcane discounting, only providing pricing in USD, and inconsistent naming conventions are sprinkled throughout.
+Making apples to apples comparisons between different cloud providers is very difficult, because each one offers instances with varying vCPUs, RAM, SSD space and HDD space.
 
 As an attempt to provide a clearer price comparison between compute service prices, I've used the [multiple linear regression](https://en.wikipedia.org/wiki/Linear_regression) to "[normalise](https://en.wikipedia.org/wiki/Normalization_(statistics))" the pricing of compute instances across different cloud providers.
 
