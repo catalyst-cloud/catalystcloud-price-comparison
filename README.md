@@ -24,3 +24,5 @@ You can see my working on an IPython notebook [here](https://nbviewer.jupyter.or
 
 
 <iframe src="https://object-storage.nz-por-1.catalystcloud.io/v1/AUTH_8ccc3286887e49cb9a40f023eba693b4/catalyst-cloud-price-comp/" width="815px" height="485px"></iframe>
+
+[.](https://catalyst-cloud.github.io/catalystcloud-price-comparison/)
