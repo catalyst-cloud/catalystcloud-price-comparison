@@ -1,2 +1,3 @@
 /.ipynb_checkpoints/*
 raw_aws_bulk.json
+*.csv
