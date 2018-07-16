@@ -6,7 +6,7 @@ var chart = new Chart(ctx, {
 
     // The data for our dataset
     data: {
-        labels: ["c1.c1.r05", "c1.c1r1", "c1.c1r2", "c1.c1r4", "c1.c2r1", "c1.c2r2", "c1.c2r4", "c1.c2r8", "c1.c2r16", "c1.c4r2", "c1.c4r4", "c1.c4r8", "c1.c4r16", "c1.c4r32", "c1.c8r4", "c1.c8r8", "c1.c8r16", "c1.c8r32", "c1.c8r64", "c1.c16r8", "c1.c16r16", "c1.c16r32", "c1.c16r64", "c1.c16r96", "c1.c16r128", "c1.c16r256", "c1.c32r16", "c1.c32r32", "c1.c32r64", "c1.c32r96", "c1.c32r128", "c1.c32r256 (beta)", "c1.c64r256 (beta)"],
+        labels: ["1 vCPUs, 0.5 GB RAM", "1 vCPUs, 1 GB RAM", "1 vCPUs, 2 GB RAM", "1 vCPUs, 4 GB RAM", "2 vCPUs, 1 GB RAM", "2 vCPUs, 2 GB RAM", "2 vCPUs, 4 GB RAM", "2 vCPUs, 8 GB RAM", "2 vCPUs, 16 GB RAM", "4 vCPUs, 2 GB RAM", "4 vCPUs, 4 GB RAM", "4 vCPUs, 8 GB RAM", "4 vCPUs, 16 GB RAM", "4 vCPUs, 32 GB RAM", "8 vCPUs, 4 GB RAM", "8 vCPUs, 8 GB RAM", "8 vCPUs, 16 GB RAM", "8 vCPUs, 32 GB RAM", "8 vCPUs, 64 GB RAM", "16 vCPUs, 8 GB RAM", "16 vCPUs, 16 GB RAM", "16 vCPUs, 32 GB RAM", "16 vCPUs, 64 GB RAM", "16 vCPUs, 96 GB RAM", "16 vCPUs, 128 GB RAM", "16 vCPUs, 256 GB RAM", "32 vCPUs, 16 GB RAM", "32 vCPUs, 32 GB RAM", "32 vCPUs, 64 GB RAM", "32 vCPUs, 96 GB RAM", "32 vCPUs, 128 GB RAM", "32 vCPUs, 256 GB RAM", "64 vCPUs, 256 GB RAM"],
         datasets: [
           {
               label: "Catalyst",
@@ -36,7 +36,7 @@ var chart = new Chart(ctx, {
               borderWidth: 2,
               tension: 0,
               fill: false,
-              data: [0.009, 0.019, 0.039, 0.079, 0.032, 0.052, 0.091, 0.170, 0.328, 0.077, 0.116, 0.195, 0.353, 0.669, 0.166, 0.245, 0.403, 0.719, 1.352, 0.345, 0.503, 0.819, 1.452, 2.084, 2.717, 5.247, 0.703, 1.019, 1.651, 2.284, 2.916, 5.446, 5.845],
+              data: [0.009, 0.019, 0.039, 0.079, 0.032, 0.052, 0.091, 0.170, 0.328, 0.076, 0.116, 0.195, 0.353, 0.668, 0.166, 0.245, 0.402, 0.718, 1.350, 0.344, 0.502, 0.818, 1.449, 2.081, 2.712, 5.238, 0.701, 1.017, 1.648, 2.280, 2.911, 5.437, 5.835],
           },
           {
               label: "Azure",
