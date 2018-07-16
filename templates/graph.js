@@ -29,7 +29,7 @@ var chart = new Chart(ctx, {
               data: [{{ google_data }}],
           },
           {
-              label: "AWS",
+              label: "Amazon",
               backgroundColor: 'rgb(255, 128, 15)',
               borderColor: 'rgb(255, 128, 15)',
               pointRadius: 0,
