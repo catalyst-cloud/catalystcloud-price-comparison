@@ -13,7 +13,7 @@ I'll be taking the price tables of:
 * AWS - [On demand instances](https://aws.amazon.com/ec2/pricing/on-demand/)
 * Azure - [Linux virtual machines](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/)
 
-and converting them into the instance sizes offered by [Catalyst Cloud](https://www.catalyst.net.nz/catalyst-cloud/prices). You can find the datasets and their sources [here](/cloud_price_comparison.ipynb). We won't be taking into account term or volume discounts.
+and converting them into the instance sizes offered by [Catalyst Cloud](https://catalystcloud.nz/pricing/price-list/). You can find the datasets and their sources [here](/cloud_price_comparison.ipynb). We won't be taking into account term or volume discounts.
 
 ## The Python
 I've used the [scikit-learn](http://scikit-learn.org/stable/) library's [multiple linear regression](http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html) to achieve the desired normalisation, and [Pandas](http://pandas.pydata.org/) for managing the data.
