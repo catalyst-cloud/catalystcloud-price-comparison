@@ -6,3 +6,4 @@ requests
 beautifulsoup4
 click
 jinja2
+IPython

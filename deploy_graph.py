@@ -2,34 +2,11 @@
 
 import click
 import subprocess
+import os
+import jinja2
+import pandas as pd
 
-# Todo:
-# write tool to deploy to bucket
-
-@click.command()
-@click.argument('bucket_name', type=click.STRING)
-def deploy(bucket_name):
-    """
-    === Description ===
-
-    Deploys a graph displaying the results of the
-    `cloud_price_comparison.ipynb` notebook to the OpenStack bucket called
-    BUCKET_NAME.
-
-    === Before running ===
-
-    Assure that an OpenStack openrc file has been sourced before running
-    this script.
-    """
-
-    
-
-
-'predicted-dataset/predicted_catalyst_prices.csv'
-
-if __name__ == '__main__':
-    deploy()
-
+# Converts the csv at csv_path into a
 def csv_to_graph(csv_path):
 
     # Initalise jinga env and template
@@ -93,3 +70,87 @@ def csv_to_graph(csv_path):
 
     # The ./display directory now has an updated price comparison graph that can be
     # inserted as an iframe html tag.
+
+
+@click.command()
+@click.argument('bucket_name', type=click.STRING)
+def deploy(bucket_name):
+    """
+    === Description ===
+
+    Deploys a graph displaying the results of the
+    `cloud_price_comparison.ipynb` notebook to the OpenStack bucket called
+    BUCKET_NAME.
+
+    === Before running ===
+
+    Assure that an OpenStack openrc file has been sourced before running
+    this script.
+    """
+
+    # Variables
+    notebook_path = 'cloud_price_comparison.ipynb'
+    python_notebook_path = 'cloud_price_comparison.py'
+    csv_path = 'predicted-dataset/predicted_catalyst_prices.csv'
+    display_path = 'display/'
+    read_acl_string = ".r:*,.rlistings"
+
+    click.echo(click.style('Converting notebook to python...', fg='green'))
+    # Convert jupyter notebook to python
+    subprocess.call(['jupyter', 'nbconvert', '--output='+python_notebook_path, '--to', 'python', notebook_path])
+
+    click.echo(click.style('Running python-ifed notebook to get data...', fg='green'))
+    # Run the notebook to generate the data
+    os.system('python {}'.format(python_notebook_path))
+
+    click.echo(click.style('Cleanup...', fg='green'))
+    # Delete the python script
+    os.remove(python_notebook_path)
+
+    click.echo(click.style('Converting data to HTML graph...', fg='green'))
+    # Convert the csv data to an HTML graph
+    csv_to_graph(csv_path)
+
+    click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
+    # Create container if it doesn't exist
+    subprocess.call(['swift', 'post', bucket_name])
+
+    # Give bucket correct Read ACL if not done already
+    subprocess.call(['swift', 'post', '-r', read_acl_string, bucket_name])
+
+    # Get objects in bucket
+    raw_objects = subprocess.check_output(['swift', 'list', bucket_name])
+
+    objects = []
+    for name in raw_objects.split('\n'): objects.append(name)
+    objects = objects[:-1]
+
+    if len(objects) is not 0:
+        # Delete existing objects in bucket
+        subprocess.call(['swift', 'delete', bucket_name] + objects)
+
+    # Upload all files in the display dir
+    subprocess.call(['swift', 'upload', bucket_name, '.'], cwd=display_path)
+
+    # Get the bucket's 'Account' value, to be used in the public url
+    raw_bucket_data = subprocess.check_output(['swift', 'stat', bucket_name])
+    bucket_data_lines = raw_bucket_data.split('\n')[:-1]
+
+    account_auth = ''
+    for line in bucket_data_lines:
+        split_line = line.split(':')
+        key = split_line[0].strip()
+        value = split_line[1].strip()
+
+        if key == 'Account':
+            account_auth = value
+            break
+
+    # Print the graph's URL
+    url = 'https://object-storage.nz-wlg-2.catalystcloud.io/v1/{auth}/{bucket}/graph.html'
+    click.echo(click.style('The graph can now be found at:', fg='green'))
+    click.echo(click.style('    ' + url.format(auth=account_auth, bucket=bucket_name), fg='green'))
+
+
+if __name__ == '__main__':
+    deploy()
