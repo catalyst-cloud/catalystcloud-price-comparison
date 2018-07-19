@@ -4,3 +4,5 @@ matplotlib
 scipy
 requests
 beautifulsoup4
+click
+jinja2
