@@ -84,8 +84,8 @@ def deploy(bucket_name):
 
     === Before running ===
 
-    Assure that an OpenStack openrc file has been sourced before running
-    this script.
+    Assure that an OpenStack openrc file has been sourced and python-swiftclient
+    has been installed before running this script.
     """
 
     # Variables
