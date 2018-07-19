@@ -7,3 +7,6 @@ beautifulsoup4
 click
 jinja2
 IPython
+python-swiftclient
+python-keystoneclient
+jupyter

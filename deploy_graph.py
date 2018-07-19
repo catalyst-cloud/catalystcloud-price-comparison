@@ -5,6 +5,7 @@ import subprocess
 import os
 import jinja2
 import pandas as pd
+import swiftclient
 
 # Converts the csv at csv_path into a
 def csv_to_graph(csv_path):
@@ -78,21 +79,21 @@ def deploy(bucket_name):
     """
     === Description ===
 
-    Deploys a graph displaying the results of the
-    `cloud_price_comparison.ipynb` notebook to the OpenStack bucket called
-    BUCKET_NAME.
+    Deploys a graph displaying the results of the `cloud_price_comparison.ipynb`
+    notebook to the OpenStack bucket called BUCKET_NAME.
 
     === Before running ===
 
-    Assure that an OpenStack openrc file has been sourced and python-swiftclient
-    has been installed before running this script.
+    Assure that you have:
+    - An OpenStack openrc file has been sourced.
+    - You have installed `requirements.txt`.
     """
 
     # Variables
     notebook_path = 'cloud_price_comparison.ipynb'
     python_notebook_path = 'cloud_price_comparison.py'
     csv_path = 'predicted-dataset/predicted_catalyst_prices.csv'
-    display_path = 'display/'
+    display_path = 'display'
     read_acl_string = ".r:*,.rlistings"
 
     click.echo(click.style('Converting notebook to python...', fg='green'))
@@ -111,46 +112,58 @@ def deploy(bucket_name):
     # Convert the csv data to an HTML graph
     csv_to_graph(csv_path)
 
-    click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
-    # Create container if it doesn't exist
-    subprocess.call(['swift', 'post', bucket_name])
+    # Read configuration from environment variables (openstack.rc)
+    auth_username = os.environ['OS_USERNAME']
+    auth_password = os.environ['OS_PASSWORD']
+    auth_url = os.environ['OS_AUTH_URL']
+    project_name = os.environ['OS_PROJECT_NAME']
+    region_name = os.environ['OS_REGION_NAME']
+    options = {'tenant_name': project_name, 'region_name': region_name}
 
-    # Give bucket correct Read ACL if not done already
-    subprocess.call(['swift', 'post', '-r', read_acl_string, bucket_name])
+    # Establish the connection with the object storage API
+    conn = swiftclient.Connection(
+            user = auth_username,
+            key = auth_password,
+            authurl = auth_url,
+            insecure = False,
+            auth_version = 3,
+            os_options = options,
+    )
+
+    # Create container if it doesn't exist
+    click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
+    conn.put_container(bucket_name, headers={'X-Container-Read': read_acl_string})
 
     # Get objects in bucket
-    raw_objects = subprocess.check_output(['swift', 'list', bucket_name])
+    objects = conn.get_container(bucket_name)[1]
 
-    objects = []
-    for name in raw_objects.split('\n'): objects.append(name)
-    objects = objects[:-1]
+    # Delete existing objects in bucket
+    for item in objects:
+        try:
+            conn.delete_object(bucket_name, item['name'])
+        except:
+            continue
 
-    if len(objects) is not 0:
-        # Delete existing objects in bucket
-        subprocess.call(['swift', 'delete', bucket_name] + objects)
+    # Get the paths of the files
+    file_paths = []
+    for root, directories, filenames in os.walk(display_path):
+        for filename in filenames:
+            rel_path = os.path.join(root,filename)
+            file_paths.append(rel_path)
 
-    # Upload all files in the display dir
-    subprocess.call(['swift', 'upload', bucket_name, '.'], cwd=display_path)
+    # Put the files into the bucket
+    for path in file_paths:
+        short_path = '/'.join(path.split('/')[1:])
 
-    # Get the bucket's 'Account' value, to be used in the public url
-    raw_bucket_data = subprocess.check_output(['swift', 'stat', bucket_name])
-    bucket_data_lines = raw_bucket_data.split('\n')[:-1]
+        with open(path, 'r') as file:
 
-    account_auth = ''
-    for line in bucket_data_lines:
-        split_line = line.split(':')
-        key = split_line[0].strip()
-        value = split_line[1].strip()
+            conn.put_object(bucket_name, short_path, file.read())
 
-        if key == 'Account':
-            account_auth = value
-            break
+    # Get a url to serve the graph from
+    base_url = conn.get_auth()[0]
+    full_url = '/'.join([base_url, bucket_name, 'graph.html'])
 
-    # Print the graph's URL
-    url = 'https://object-storage.nz-wlg-2.catalystcloud.io/v1/{auth}/{bucket}/graph.html'
-    click.echo(click.style('The graph can now be found at:', fg='green'))
-    click.echo(click.style('    ' + url.format(auth=account_auth, bucket=bucket_name), fg='green'))
-
+    click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
 
 if __name__ == '__main__':
     deploy()
