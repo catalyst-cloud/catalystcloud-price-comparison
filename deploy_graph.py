@@ -6,6 +6,7 @@ import os
 import jinja2
 import pandas as pd
 import swiftclient
+import sys
 
 # Converts the csv at csv_path into a
 def csv_to_graph(csv_path):
@@ -89,6 +90,33 @@ def deploy(bucket_name):
     - You have installed `requirements.txt`.
     """
 
+    try:
+        # Read configuration from environment variables (openstack.rc)
+        auth_username = os.environ['OS_USERNAME']
+        auth_password = os.environ['OS_PASSWORD']
+        auth_url = os.environ['OS_AUTH_URL']
+        project_name = os.environ['OS_PROJECT_NAME']
+        region_name = os.environ['OS_REGION_NAME']
+        options = {'tenant_name': project_name, 'region_name': region_name}
+
+    except:
+        click.echo(click.style("It appears you haven't sourced an RC file.", fg='red'))
+        sys.exit()
+
+    try:
+        # Establish the connection with the object storage API
+        conn = swiftclient.Connection(
+                user = auth_username,
+                key = auth_password,
+                authurl = auth_url,
+                insecure = False,
+                auth_version = 3,
+                os_options = options,
+        )
+    except:
+        click.echo(click.style("Problem connecting to OpenStack.", fg='red'))
+        sys.exit()
+
     # Variables
     notebook_path = 'cloud_price_comparison.ipynb'
     python_notebook_path = 'cloud_price_comparison.py'
@@ -111,24 +139,6 @@ def deploy(bucket_name):
     click.echo(click.style('Converting data to HTML graph...', fg='green'))
     # Convert the csv data to an HTML graph
     csv_to_graph(csv_path)
-
-    # Read configuration from environment variables (openstack.rc)
-    auth_username = os.environ['OS_USERNAME']
-    auth_password = os.environ['OS_PASSWORD']
-    auth_url = os.environ['OS_AUTH_URL']
-    project_name = os.environ['OS_PROJECT_NAME']
-    region_name = os.environ['OS_REGION_NAME']
-    options = {'tenant_name': project_name, 'region_name': region_name}
-
-    # Establish the connection with the object storage API
-    conn = swiftclient.Connection(
-            user = auth_username,
-            key = auth_password,
-            authurl = auth_url,
-            insecure = False,
-            auth_version = 3,
-            os_options = options,
-    )
 
     # Create container if it doesn't exist
     click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
