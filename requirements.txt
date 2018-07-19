@@ -10,4 +10,3 @@ IPython
 python-swiftclient
 python-keystoneclient
 jupyter
-tkinter
