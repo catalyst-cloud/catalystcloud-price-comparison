@@ -97,7 +97,7 @@ def deploy(bucket_name):
 
     click.echo(click.style('Converting notebook to python...', fg='green'))
     # Convert jupyter notebook to python
-    subprocess.call(['jupyter', 'nbconvert', '--output='python_notebook_path, '--to', 'python', notebook_path])
+    subprocess.call(['jupyter', 'nbconvert', '--output=' + python_notebook_path, '--to', 'python', notebook_path])
 
     click.echo(click.style('Running python-ifed notebook to get data...', fg='green'))
     # Run the notebook to generate the data
