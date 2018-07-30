@@ -29,7 +29,6 @@ def csv_to_graph(csv_path):
 
     # Generate current date as string
     timestamp_string = time.strftime("%d/%m/%Y", time.localtime())
-    print(timestamp_string)
 
     # Define a function that removes empty decimal places from numbers ('16.0' to
     # '16') to shorten the labels on the graph without losing any detail.
