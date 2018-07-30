@@ -7,6 +7,8 @@ import jinja2
 import pandas as pd
 import swiftclient
 import sys
+import hashlib
+import time
 
 # Converts the csv at csv_path into a
 def csv_to_graph(csv_path):
@@ -15,10 +17,19 @@ def csv_to_graph(csv_path):
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader('templates')
     )
-    graph_template = env.get_template('graph.js')
+    graph_data_template = env.get_template('graph.js')
+    graph_html_template = env.get_template('graph.html')
 
     # Import cloud price data
     df = pd.read_csv(csv_path, index_col=0)
+
+    # Generate hash of CSV used to generate graph.
+    source_data_hash = hashlib.md5(open(csv_path,'rb').read()).hexdigest()
+    source_data_hash = source_data_hash[:10]
+
+    # Generate current date as string
+    timestamp_string = time.strftime("%d/%m/%Y", time.localtime())
+    print(timestamp_string)
 
     # Define a function that removes empty decimal places from numbers ('16.0' to
     # '16') to shorten the labels on the graph without losing any detail.
@@ -58,17 +69,24 @@ def csv_to_graph(csv_path):
     azure_data = get_price_string('Azure price per hour, NZD (ex GST)')
 
     # Render the template with the labels and price data.
-    data_filled_js = graph_template.render(
+    data_filled_js = graph_data_template.render(
         labels=names_list,
         catalyst_data=catalyst_data,
         google_data=google_data,
         aws_data=aws_data,
         azure_data=azure_data
     )
+    data_filled_html = graph_html_template.render(
+        timestamp=source_data_hash,
+        hash=timestamp_string
+    )
 
     # Write the rendered template into a file for use.
-    with open('display/js/graph.js', 'w') as graph_file:
-        graph_file.write(data_filled_js)
+    with open('display/js/graph.js', 'w') as graph_js:
+        graph_js.write(data_filled_js)
+
+    with open('display/graph.html', 'w') as graph_html:
+        graph_html.write(data_filled_html)
 
     # The ./display directory now has an updated price comparison graph that can be
     # inserted as an iframe html tag.

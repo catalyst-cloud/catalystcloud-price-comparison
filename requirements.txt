@@ -10,3 +10,4 @@ IPython
 python-swiftclient
 python-keystoneclient
 jupyter
+hashlib
