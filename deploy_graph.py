@@ -82,6 +82,10 @@ def csv_to_graph(csv_path):
         hash=timestamp_string
     )
 
+    # Create display directories if they don't already exist.
+    if not os.path.exists('display/js'):
+        os.makedirs('display/js')
+
     # Write the rendered template into a display file for use.
     with open('display/js/graph.js', 'w') as graph_js:
         graph_js.write(data_filled_js)
