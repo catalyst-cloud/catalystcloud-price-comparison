@@ -3,3 +3,6 @@
 *.csv
 env/
 venv/
+display/
+dataset/
+predicted-dataset/
