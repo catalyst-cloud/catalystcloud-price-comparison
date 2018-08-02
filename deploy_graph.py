@@ -9,6 +9,7 @@ import swiftclient
 import sys
 import hashlib
 import time
+import shutil
 
 # Converts the csv at csv_path into a
 def csv_to_graph(csv_path):
@@ -17,7 +18,7 @@ def csv_to_graph(csv_path):
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader('templates')
     )
-    graph_data_template = env.get_template('graph.js')
+    graph_data_template = env.get_template('js/graph.js')
     graph_html_template = env.get_template('graph.html')
 
     # Import cloud price data
@@ -75,17 +76,20 @@ def csv_to_graph(csv_path):
         aws_data=aws_data,
         azure_data=azure_data
     )
+
     data_filled_html = graph_html_template.render(
         timestamp=source_data_hash,
         hash=timestamp_string
     )
 
-    # Write the rendered template into a file for use.
+    # Write the rendered template into a display file for use.
     with open('display/js/graph.js', 'w') as graph_js:
         graph_js.write(data_filled_js)
 
     with open('display/graph.html', 'w') as graph_html:
         graph_html.write(data_filled_html)
+
+    shutil.copyfile('templates/js/chart.min.js', 'display/js/chart.min.js')
 
     # The ./display directory now has an updated price comparison graph that can be
     # inserted as an iframe html tag.
