@@ -56,7 +56,7 @@ var chart = new Chart(ctx, {
       responsive: true,
       title:{
           display:true,
-          text:'Comparison of cloud compute price per hour',
+          text:'Comparison of on-demand compute per hour',
           fontSize: 22
       },
       legend: {
