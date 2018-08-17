@@ -24,6 +24,18 @@ def csv_to_graph(csv_path):
     # Import cloud price data
     df = pd.read_csv(csv_path, index_col=0)
 
+    # Sort by mean price across providers
+    rows_to_get_mean = df[[
+        'Catalyst price per hour, NZD (ex GST)',
+        'Google price per hour, NZD (ex GST)',
+        'AWS price per hour, NZD (ex GST)',
+        'Azure price per hour, NZD (ex GST)'
+    ]]
+
+    df['Mean price per hour'] = rows_to_get_mean.mean(1)
+
+    df = df.sort_values(by=['Mean price per hour'])
+
     # Generate hash of CSV used to generate graph.
     source_data_hash = hashlib.md5(open(csv_path,'rb').read()).hexdigest()
     source_data_hash = source_data_hash[:10]
