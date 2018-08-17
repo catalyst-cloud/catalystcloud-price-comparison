@@ -5,7 +5,7 @@ import subprocess
 import os
 import jinja2
 import pandas as pd
-import swiftclient
+import openstack
 import sys
 import hashlib
 import time
@@ -115,29 +115,10 @@ def deploy(bucket_name):
     - You have installed `requirements.txt`.
     """
 
+    # Establish the connection with Catalyst Cloud
     try:
-        # Read configuration from environment variables (openstack.rc)
-        auth_username = os.environ['OS_USERNAME']
-        auth_password = os.environ['OS_PASSWORD']
-        auth_url = os.environ['OS_AUTH_URL']
-        project_name = os.environ['OS_PROJECT_NAME']
-        region_name = os.environ['OS_REGION_NAME']
-        options = {'tenant_name': project_name, 'region_name': region_name}
+        conn = openstack.connect()
 
-    except:
-        click.echo(click.style("It appears you haven't sourced an RC file.", fg='red'))
-        sys.exit()
-
-    try:
-        # Establish the connection with the object storage API
-        conn = swiftclient.Connection(
-                user = auth_username,
-                key = auth_password,
-                authurl = auth_url,
-                insecure = False,
-                auth_version = 3,
-                os_options = options,
-        )
     except:
         click.echo(click.style("Problem connecting to OpenStack.", fg='red'))
         sys.exit()
@@ -167,15 +148,18 @@ def deploy(bucket_name):
 
     # Create container if it doesn't exist
     click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
-    conn.put_container(bucket_name, headers={'X-Container-Read': read_acl_string})
+    conn.object_store.create_container(bucket_name)
+
+    # Set container read_ACL metadata to allow serving contents as static site
+    conn.object_store.set_container_metadata(bucket_name, read_ACL=read_acl_string)
 
     # Get objects in bucket
-    objects = conn.get_container(bucket_name)[1]
+    objects = [x for x in conn.object_store.objects(container=bucket_name)]
 
     # Delete existing objects in bucket
     for item in objects:
         try:
-            conn.delete_object(bucket_name, item['name'])
+            conn.object_store.delete_object(item['name'], container=bucket_name)
         except:
             continue
 
@@ -192,10 +176,10 @@ def deploy(bucket_name):
 
         with open(path, 'r') as file:
 
-            conn.put_object(bucket_name, short_path, file.read())
+            conn.object_store.upload_object(container=bucket_name, name=short_path, data=file.read())
 
     # Get a url to serve the graph from
-    base_url = conn.get_auth()[0]
+    base_url = conn.object_store.get_endpoint()
     full_url = '/'.join([base_url, bucket_name, 'graph.html'])
 
     click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
