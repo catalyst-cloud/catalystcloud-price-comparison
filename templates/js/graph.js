@@ -19,7 +19,7 @@ var chart = new Chart(ctx, {
               data: [{{ catalyst_data }}],
           },
           {
-              label: "Google",
+              label: "Google (Sydney)",
               backgroundColor: 'rgb(214, 39, 40)',
               borderColor: 'rgb(214, 39, 40)',
               pointRadius: 0,
@@ -29,7 +29,7 @@ var chart = new Chart(ctx, {
               data: [{{ google_data }}],
           },
           {
-              label: "AWS",
+              label: "AWS (Sydney)",
               backgroundColor: 'rgb(255, 128, 15)',
               borderColor: 'rgb(255, 128, 15)',
               pointRadius: 0,
@@ -39,7 +39,7 @@ var chart = new Chart(ctx, {
               data: [{{ aws_data }}],
           },
           {
-              label: "Azure",
+              label: "Azure (Sydney)",
               backgroundColor: 'rgb(31, 119, 180)',
               borderColor: 'rgb(31, 119, 180)',
               pointRadius: 0,
