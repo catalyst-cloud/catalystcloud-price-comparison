@@ -11,12 +11,67 @@ import hashlib
 import time
 import shutil
 
-# Converts the csv at csv_path into a
-def csv_to_graph(csv_path):
+# Connects to Catalyst Cloud
+def connect_to_ccloud():
+    try:
+        conn = openstack.connect()
+        return conn
+
+    except:
+        click.echo(click.style("Problem connecting to OpenStack.", fg='red'))
+        sys.exit()
+
+# Uploads the files to a bucket, and assures the bucket has all correct config.
+# Returns the url the graph is displayed at.
+def upload_to_bucket(bucket_name, connection, display_path):
+    # Define variables
+    read_acl_string = ".r:*,.rlistings"
+
+    # Create container if it doesn't exist
+    click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
+    connection.object_store.create_container(bucket_name)
+
+    # Set container read_ACL metadata to allow serving contents as static site
+    connection.object_store.set_container_metadata(bucket_name, read_ACL=read_acl_string)
+
+    # Get objects in bucket
+    objects = [x for x in connection.object_store.objects(container=bucket_name)]
+
+    # Delete existing objects in bucket
+    for item in objects:
+        try:
+            connection.object_store.delete_object(item['name'], container=bucket_name)
+        except:
+            continue
+
+    # Get the paths of the files
+    file_paths = []
+    for root, directories, filenames in os.walk(display_path):
+        for filename in filenames:
+            rel_path = os.path.join(root,filename)
+            file_paths.append(rel_path)
+
+    # Put the files into the bucket
+    for path in file_paths:
+        short_path = '/'.join(path.split('/')[1:])
+
+        with open(path, 'r') as file:
+
+            connection.object_store.upload_object(container=bucket_name, name=short_path, data=file.read())
+
+    # Get a url to serve the graph from
+    base_url = connection.object_store.get_endpoint()
+    full_url = '/'.join([base_url, bucket_name, 'graph.html'])
+    return full_url
+
+# Converts the csv at csv_path into an HTML graph
+def csv_to_graph(csv_path, display_path, template_choice):
+
+    template_dir = '/'.join(['templates', template_choice])
 
     # Initalise jinga env and template
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader('templates')
+        loader=jinja2.FileSystemLoader(template_dir)
     )
     graph_data_template = env.get_template('js/graph.js')
     graph_html_template = env.get_template('graph.html')
@@ -105,20 +160,30 @@ def csv_to_graph(csv_path):
     with open('display/graph.html', 'w') as graph_html:
         graph_html.write(data_filled_html)
 
-    shutil.copyfile('templates/js/chart.min.js', 'display/js/chart.min.js')
+    shutil.copyfile(template_dir + '/' + 'js/chart.min.js', 'display/js/chart.min.js')
 
     # The ./display directory now has an updated price comparison graph that can be
     # inserted as an iframe html tag.
 
 
 @click.command()
-@click.argument('bucket_name', type=click.STRING)
-def deploy(bucket_name):
+@click.option('--fresh-data/--stale-data',
+    default=True,
+    help='Whether this script run the Jupyter notebook to collect up-to-date price data.'
+    )
+@click.option('--deploy',
+    help='If included, will deploy the graph to the bucket specified by this option.',
+    metavar='<bucket name>'
+    )
+@click.argument('template',
+    type=click.STRING
+    )
+def deploy(fresh_data, deploy, template):
     """
     === Description ===
 
     Deploys a graph displaying the results of the `cloud_price_comparison.ipynb`
-    notebook to the OpenStack bucket called BUCKET_NAME.
+    notebook to the OpenStack bucket called BUCKET_NAME. The results will
 
     === Before running ===
 
@@ -127,74 +192,46 @@ def deploy(bucket_name):
     - You have installed `requirements.txt`.
     """
 
-    # Establish the connection with Catalyst Cloud
-    try:
-        conn = openstack.connect()
+    print(fresh_data, deploy, template)
 
-    except:
-        click.echo(click.style("Problem connecting to OpenStack.", fg='red'))
-        sys.exit()
+    if deploy is not None:
+        # Establish the connection with Catalyst Cloud
+        connection = connect_to_ccloud()
 
     # Variables
     notebook_path = 'cloud_price_comparison.ipynb'
     python_notebook_path = 'cloud_price_comparison.py'
     csv_path = 'predicted-dataset/predicted_catalyst_prices.csv'
     display_path = 'display'
-    read_acl_string = ".r:*,.rlistings"
 
-    click.echo(click.style('Converting notebook to python...', fg='green'))
-    # Convert jupyter notebook to python
-    subprocess.call(['jupyter', 'nbconvert', '--output=' + python_notebook_path, '--to', 'python', notebook_path])
+    # If fresh data is wanted...
+    if fresh_data:
+        click.echo(click.style('Converting notebook to python...', fg='green'))
+        # Convert jupyter notebook to python
+        subprocess.call(['jupyter', 'nbconvert', '--output=' + python_notebook_path, '--to', 'python', notebook_path])
 
-    click.echo(click.style('Running python-ifed notebook to get data...', fg='green'))
-    # Run the notebook to generate the data
-    os.system('python {}'.format(python_notebook_path))
+        click.echo(click.style('Running python-ifed notebook to get data...', fg='green'))
+        # Run the notebook to generate the data
+        os.system('python {}'.format(python_notebook_path))
 
-    click.echo(click.style('Cleanup...', fg='green'))
-    # Delete the python script
-    os.remove(python_notebook_path)
+        click.echo(click.style('Cleanup...', fg='green'))
+        # Delete the python script
+        os.remove(python_notebook_path)
 
     click.echo(click.style('Converting data to HTML graph...', fg='green'))
     # Convert the csv data to an HTML graph
-    csv_to_graph(csv_path)
+    csv_to_graph(csv_path, display_path, template)
 
-    # Create container if it doesn't exist
-    click.echo(click.style('Pushing static files to bucket: ' + bucket_name +'...', fg='green'))
-    conn.object_store.create_container(bucket_name)
+    # If the html graph should be deployed...
+    if deploy is not None:
+        # Perform the upload process
+        full_url = upload_to_bucket(deploy, connection, display_path)
+        click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
 
-    # Set container read_ACL metadata to allow serving contents as static site
-    conn.object_store.set_container_metadata(bucket_name, read_ACL=read_acl_string)
-
-    # Get objects in bucket
-    objects = [x for x in conn.object_store.objects(container=bucket_name)]
-
-    # Delete existing objects in bucket
-    for item in objects:
-        try:
-            conn.object_store.delete_object(item['name'], container=bucket_name)
-        except:
-            continue
-
-    # Get the paths of the files
-    file_paths = []
-    for root, directories, filenames in os.walk(display_path):
-        for filename in filenames:
-            rel_path = os.path.join(root,filename)
-            file_paths.append(rel_path)
-
-    # Put the files into the bucket
-    for path in file_paths:
-        short_path = '/'.join(path.split('/')[1:])
-
-        with open(path, 'r') as file:
-
-            conn.object_store.upload_object(container=bucket_name, name=short_path, data=file.read())
-
-    # Get a url to serve the graph from
-    base_url = conn.object_store.get_endpoint()
-    full_url = '/'.join([base_url, bucket_name, 'graph.html'])
-
-    click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
+    else:
+        full_path = os.path.abspath(display_path + '/graph.html')
+        full_url = 'file://' + full_path
+        click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
 
 if __name__ == '__main__':
     deploy()
