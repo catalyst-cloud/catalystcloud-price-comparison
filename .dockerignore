@@ -1,9 +1,10 @@
-.ipynb_checkpoints/
-env/
-venv/
-display/
-dataset/
-predicted-dataset/
+venv
+env
+dataset
+predicted-dataset
+README.md
+Dockerfile
+display
 # Swap
 [._]*.s[a-v][a-z]
 [._]*.sw[a-p]
