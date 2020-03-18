@@ -1,5 +1,6 @@
 # Python 2.7.15
 
+import datetime
 import click
 import subprocess
 import os
@@ -23,7 +24,7 @@ def connect_to_ccloud():
 
 # Uploads the files to a bucket, and assures the bucket has all correct config.
 # Returns the url the graph is displayed at.
-def upload_to_bucket(bucket_name, connection, display_path):
+def upload_to_bucket(bucket_name, connection, display_path, current_datetime):
     # Define variables
     read_acl_string = ".r:*,.rlistings"
 
@@ -33,16 +34,6 @@ def upload_to_bucket(bucket_name, connection, display_path):
 
     # Set container read_ACL metadata to allow serving contents as static site
     connection.object_store.set_container_metadata(bucket_name, read_ACL=read_acl_string)
-
-    # Get objects in bucket
-    objects = [x for x in connection.object_store.objects(container=bucket_name)]
-
-    # Delete existing objects in bucket
-    for item in objects:
-        try:
-            connection.object_store.delete_object(item['name'], container=bucket_name)
-        except:
-            continue
 
     # Get the paths of the files
     file_paths = []
@@ -61,11 +52,11 @@ def upload_to_bucket(bucket_name, connection, display_path):
 
     # Get a url to serve the graph from
     base_url = connection.object_store.get_endpoint()
-    full_url = '/'.join([base_url, bucket_name, 'graph.html'])
+    full_url = '/'.join([base_url, bucket_name, current_datetime + '/graph.html'])
     return full_url
 
 # Converts the csv at csv_path into an HTML graph
-def csv_to_graph(csv_path, display_path, template_choice):
+def csv_to_graph(csv_path, display_path, template_choice, current_datetime):
 
     template_dir = '/'.join(['templates', template_choice])
 
@@ -149,18 +140,20 @@ def csv_to_graph(csv_path, display_path, template_choice):
         hash=timestamp_string
     )
 
+    display_dir = 'display/' + current_datetime
+
     # Create display directories if they don't already exist.
-    if not os.path.exists('display/js'):
-        os.makedirs('display/js')
+    if not os.path.exists(display_dir + '/js'):
+        os.makedirs(display_dir + '/js')
 
     # Write the rendered template into a display file for use.
-    with open('display/js/graph.js', 'w') as graph_js:
+    with open(display_dir + '/js/graph.js', 'w') as graph_js:
         graph_js.write(data_filled_js)
 
-    with open('display/graph.html', 'w') as graph_html:
+    with open(display_dir + '/graph.html', 'w') as graph_html:
         graph_html.write(data_filled_html)
 
-    shutil.copyfile(template_dir + '/' + 'js/chart.min.js', 'display/js/chart.min.js')
+    shutil.copyfile(template_dir + '/' + 'js/chart.min.js', display_dir + '/js/chart.min.js')
 
     # The ./display directory now has an updated price comparison graph that can be
     # inserted as an iframe html tag.
@@ -204,6 +197,8 @@ def deploy(fresh_data, deploy, template):
     csv_path = 'predicted-dataset/predicted_catalyst_prices.csv'
     display_path = 'display'
 
+    current_datetime = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M")
+
     # If fresh data is wanted...
     if fresh_data:
         click.echo(click.style('Converting notebook to python...', fg='green'))
@@ -220,16 +215,16 @@ def deploy(fresh_data, deploy, template):
 
     click.echo(click.style('Converting data to HTML graph...', fg='green'))
     # Convert the csv data to an HTML graph
-    csv_to_graph(csv_path, display_path, template)
+    csv_to_graph(csv_path, display_path, template, current_datetime)
 
     # If the html graph should be deployed...
     if deploy is not None:
         # Perform the upload process
-        full_url = upload_to_bucket(deploy, connection, display_path)
+        full_url = upload_to_bucket(deploy, connection, display_path, current_datetime)
         click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
 
     else:
-        full_path = os.path.abspath(display_path + '/graph.html')
+        full_path = os.path.abspath(display_path + '/' + current_datetime + '/graph.html')
         full_url = 'file://' + full_path
         click.echo(click.style('The graph can now be found at: ' + full_url, fg='green'))
 
